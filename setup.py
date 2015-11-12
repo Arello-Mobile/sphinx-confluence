@@ -11,8 +11,8 @@ setup(
     description='Atlassian Confluence extension for sphinx',
     long_description=README,
     version='0.0.1',
-    author='arello-mobile',
-    url='http://arello-mobile.com',
+    author='Arello Mobile',
+    url='https://github.com/Arello-Mobile/sphinx-confluence',
     packages=['sphinx_confluence'],
     license='MIT',
     classifiers=[
