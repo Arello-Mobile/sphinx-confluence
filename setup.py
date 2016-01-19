@@ -15,6 +15,7 @@ setup(
     url='https://github.com/Arello-Mobile/sphinx-confluence',
     packages=['sphinx_confluence'],
     license='MIT',
+    install_requires=open('requirements.txt'),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
