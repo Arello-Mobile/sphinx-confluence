@@ -11,39 +11,44 @@ from docutils import nodes
 from docutils.parsers.rst import directives, Directive
 from docutils.parsers.rst.directives import images
 from docutils.parsers.rst.roles import set_classes
-from sphinx.builders import html, Builder
+from sphinx.builders.html import JSONHTMLBuilder
 from sphinx.locale import _
 from sphinx.writers.html import HTMLTranslator
 
 
-class JSONConfluenceBuilder(html.JSONHTMLBuilder):
-    name = 'json_conf'
+class TitlesMap(object):
     titles = {}
-
-    def init(self):
-        self.config.html_translator_class = str(self.config.html_translator_class)
-        super(JSONConfluenceBuilder, self).init()
-
-    def post_process_images(self, doctree):
-        Builder.post_process_images(self, doctree)
-        # remove html_scaled_image_link processing
-        # all images will upload are full-scaled and without link to original
 
     @staticmethod
     def _document_key(document):
         return hash(document)
 
-    def set_title(self, document, title):
-        self.titles[self._document_key(document)] = title
+    @classmethod
+    def set_title(cls, document, title):
+        cls.titles[cls._document_key(document)] = title
 
-    def get_title(self, document):
-        return self.titles.get(self._document_key(document), None)
+    @classmethod
+    def get_title(cls, document):
+        return cls.titles.get(cls._document_key(document), None)
 
-    def has_title(self, document):
-        return self._document_key(document) in self.titles
+    @classmethod
+    def has_title(cls, document):
+        return cls._document_key(document) in cls.titles
+
+
+class JSONConfluenceBuilder(JSONHTMLBuilder):
+    """For backward compatibility"""
+
+    name = 'json_conf'
 
 
 class HTMLConfluenceTranslator(HTMLTranslator):
+
+    def unimplemented_visit(self, node):
+        self.builder.warn('Unimplemented visit not implemented yet for node: {}'.format(node))
+
+    def unknown_visit(self, node):
+        self.builder.warn('Unknown visit not implemented yet for node: {}'.format(node))
 
     def imgtag(self, filename, suffix='\n', **attributes):
         """
@@ -118,12 +123,12 @@ class HTMLConfluenceTranslator(HTMLTranslator):
         self.body.append(self.imgtag(filename, suffix, **atts))
 
     def visit_title(self, node):
-        if isinstance(node.parent, nodes.section) and not self.builder.has_title(self.document):
+        if isinstance(node.parent, nodes.section) and not TitlesMap.has_title(self.document):
             h_level = self.section_level + self.initial_header_level - 1
             if h_level == 1:
                 # Confluence take first title for page title from rst
                 # It use for making internal links
-                self.builder.set_title(self.document, node.children[0])
+                TitlesMap.set_title(self.document, node.children[0])
 
                 # ignore first header; document must have title header
                 raise nodes.SkipNode
@@ -255,8 +260,8 @@ class HTMLConfluenceTranslator(HTMLTranslator):
         if 'refuri' in node:
             atts['href'] = ''
             # Confluence makes internal links with prefix from page title
-            if node.get('internal') and self.builder.has_title(self.document):
-                atts['href'] += '#%s-' % self.builder.get_title(self.document).replace(' ', '')
+            if node.get('internal') and TitlesMap.has_title(self.document):
+                atts['href'] += '#%s-' % TitlesMap.get_title(self.document).replace(' ', '')
 
             atts['href'] += node['refuri']
             if self.settings.cloak_email_addresses and \
@@ -269,8 +274,8 @@ class HTMLConfluenceTranslator(HTMLTranslator):
 
             atts['href'] = ''
             # Confluence makes internal links with prefix from page title
-            if node.get('internal') and self.builder.has_title(self.document):
-                atts['href'] += '#%s-' % self.builder.get_title(self.document).replace(' ', '')
+            if node.get('internal') and TitlesMap.has_title(self.document):
+                atts['href'] += '#%s-' % TitlesMap.get_title(self.document).replace(' ', '')
             atts['href'] += node['refid']
 
         if not isinstance(node.parent, nodes.TextElement):
@@ -391,6 +396,13 @@ class TocTree(Directive):
 
 
 def setup(app):
+    """
+    :type app: sphinx.application.Sphinx
+    """
+    app.config.html_scaled_image_link = False
+    app.config.html_translator_class = 'sphinx_confluence.HTMLConfluenceTranslator'
+    app.config.html_add_permalinks = ''
+
     app.add_directive('image', ImageConf)
     app.add_directive('toctree', TocTree)
     app.add_builder(JSONConfluenceBuilder)
