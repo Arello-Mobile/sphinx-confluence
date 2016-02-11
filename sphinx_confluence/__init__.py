@@ -41,6 +41,10 @@ class JSONConfluenceBuilder(JSONHTMLBuilder):
 
     name = 'json_conf'
 
+    def __init__(self, app):
+        super(JSONConfluenceBuilder, self).__init__(app)
+        self.warn('json_conf builder is deprecated, will be removed in future releases')
+
 
 class HTMLConfluenceTranslator(HTMLTranslator):
 

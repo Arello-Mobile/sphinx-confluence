@@ -25,19 +25,17 @@ Plugin includes to section extensions
 
 ```python
 sys.path.append('!!!_PATH_TO_EXTENSION_!!!')
-extensions = ['confluence']
-html_translator_class = 'confluence.HTMLConfluenceTranslator'
-html_add_permalinks=''
+extensions = ['sphinx_confluence']
 ```
 
 Build docs with conf.py
 -----------------------
 
 
-Plugin has own Builder ``json_conf``
+Plugin has own Builder ``json_conf`` (deprecated: use ``json`` instead)
 
 ```sh
-sphinx-build -b json_conf -d build/doctrees source build/json
+sphinx-build -b json -d build/doctrees source build/json
 ```
 
 Build docs without conf.py
@@ -45,12 +43,10 @@ Build docs without conf.py
 
 ```sh
     sphinx-build \
-        -b json_conf \
+        -b json \
         -d build/doctrees \
         -C \
         -D master_doc=index \
-        -D html_add_permalinks= \ 
-        -D html_translator_class=sphinx_confluence.HTMLConfluenceTranslator \ 
         -D extensions=sphinx_confluence,sphinx.ext.todo \
-        source build/json
+        source build/result
 ```
