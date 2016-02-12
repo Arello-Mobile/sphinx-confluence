@@ -522,10 +522,19 @@ class JiraUserRole(roles.GenericRole):
         return [nodes.raw('', macro.format(username=text), **attributes)], []
 
 
+def get_path():
+    from os import path
+    package_dir = path.abspath(path.dirname(__file__))
+    template_path = path.join(package_dir, 'themes')
+    return template_path
+
+
 def setup(app):
     """
     :type app: sphinx.application.Sphinx
     """
+    app.config.html_theme_path = [get_path()]
+    app.config.html_theme = 'confluence'
     app.config.html_scaled_image_link = False
     app.config.html_translator_class = 'sphinx_confluence.HTMLConfluenceTranslator'
     app.config.html_add_permalinks = ''
