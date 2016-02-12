@@ -8,7 +8,7 @@ https://confluence.atlassian.com/display/DOC/Confluence+Storage+Format
 import os
 
 from docutils import nodes
-from docutils.parsers.rst import directives, Directive
+from docutils.parsers.rst import directives, Directive, roles
 from docutils.parsers.rst.directives import images
 from docutils.parsers.rst.roles import set_classes
 from sphinx.builders.html import JSONHTMLBuilder
@@ -16,7 +16,15 @@ from sphinx.locale import _
 from sphinx.writers.html import HTMLTranslator
 
 
-class TitlesMap(object):
+def true_false(argument):
+    return directives.choice(argument, ('true', 'false'))
+
+
+def static_dynamic(argument):
+    return directives.choice(argument, ('static', 'dynamic'))
+
+
+class TitlesCache(object):
     titles = {}
 
     @staticmethod
@@ -43,16 +51,61 @@ class JSONConfluenceBuilder(JSONHTMLBuilder):
 
     def __init__(self, app):
         super(JSONConfluenceBuilder, self).__init__(app)
-        self.warn('json_conf builder is deprecated, will be removed in future releases')
+        self.warn('json_conf builder is deprecated and will be removed in future releases')
 
 
 class HTMLConfluenceTranslator(HTMLTranslator):
-
     def unimplemented_visit(self, node):
-        self.builder.warn('Unimplemented visit not implemented yet for node: {}'.format(node))
+        self.builder.warn('Unimplemented visit is not implemented for node: {}'.format(node))
 
     def unknown_visit(self, node):
-        self.builder.warn('Unknown visit not implemented yet for node: {}'.format(node))
+        self.builder.warn('Unknown visit is not implemented for node: {}'.format(node))
+
+    def visit_admonition(self, node, name=''):
+        """
+        Info, Tip, Note, and Warning Macros
+
+        https://confluence.atlassian.com/conf58/info-tip-note-and-warning-macros-771892344.html
+
+        <ac:structured-macro ac:name="info">
+          <ac:parameter ac:name="icon">false</ac:parameter>
+          <ac:parameter ac:name="title">This is my title</ac:parameter>
+          <ac:rich-text-body>
+            <p>
+              This is important information.
+            </p>
+          </ac:rich-text-body>
+        </ac:structured-macro>
+        """
+
+        confluence_admonition_map = {
+            'note': 'info',
+            'warning': 'note',
+            'attention': 'note',
+            'hint': 'tip',
+            'tip': 'tip',
+            'important': 'warning',
+            'error': 'warning',
+            'danger': 'warning',
+        }
+
+        admonition_type = confluence_admonition_map.get(name, 'info')
+
+        macro = """\
+            <ac:structured-macro ac:name="{admonition_type}">
+              <ac:parameter ac:name="icon">true</ac:parameter>
+              <ac:parameter ac:name="title"></ac:parameter>
+              <ac:rich-text-body>
+        """
+
+        self.body.append(macro.format(admonition_type=admonition_type))
+
+    def depart_admonition(self, node=None):
+        macro = """
+              </ac:rich-text-body>
+            </ac:structured-macro>\n
+        """
+        self.body.append(macro)
 
     def imgtag(self, filename, suffix='\n', **attributes):
         """
@@ -93,7 +146,7 @@ class HTMLConfluenceTranslator(HTMLTranslator):
             assert value is not None
 
             if isinstance(value, list):
-                value = ' '.join(map(unicode, value))
+                value = u' '.join(map(unicode, value))
             else:
                 value = unicode(value)
 
@@ -127,12 +180,12 @@ class HTMLConfluenceTranslator(HTMLTranslator):
         self.body.append(self.imgtag(filename, suffix, **atts))
 
     def visit_title(self, node):
-        if isinstance(node.parent, nodes.section) and not TitlesMap.has_title(self.document):
+        if isinstance(node.parent, nodes.section) and not TitlesCache.has_title(self.document):
             h_level = self.section_level + self.initial_header_level - 1
             if h_level == 1:
                 # Confluence take first title for page title from rst
                 # It use for making internal links
-                TitlesMap.set_title(self.document, node.children[0])
+                TitlesCache.set_title(self.document, node.children[0])
 
                 # ignore first header; document must have title header
                 raise nodes.SkipNode
@@ -167,12 +220,9 @@ class HTMLConfluenceTranslator(HTMLTranslator):
                 link = node['refname']
 
             self.body.append(anchor_macros % link)
-        else:
-            self.context.append('')
 
     def depart_target(self, node):
-        if len(self.context):
-            self.body.append(self.context.pop())
+        pass
 
     def visit_literal_block(self, node):
         """
@@ -264,22 +314,20 @@ class HTMLConfluenceTranslator(HTMLTranslator):
         if 'refuri' in node:
             atts['href'] = ''
             # Confluence makes internal links with prefix from page title
-            if node.get('internal') and TitlesMap.has_title(self.document):
-                atts['href'] += '#%s-' % TitlesMap.get_title(self.document).replace(' ', '')
+            if node.get('internal') and TitlesCache.has_title(self.document):
+                atts['href'] += '#%s-' % TitlesCache.get_title(self.document).replace(' ', '')
 
             atts['href'] += node['refuri']
-            if self.settings.cloak_email_addresses and \
-               atts['href'].startswith('mailto:'):
+            if self.settings.cloak_email_addresses and atts['href'].startswith('mailto:'):
                 atts['href'] = self.cloak_mailto(atts['href'])
                 self.in_mailto = 1
         else:
-            assert 'refid' in node, \
-                   'References must have "refuri" or "refid" attribute.'
+            assert 'refid' in node, 'References must have "refuri" or "refid" attribute.'
 
             atts['href'] = ''
             # Confluence makes internal links with prefix from page title
-            if node.get('internal') and TitlesMap.has_title(self.document):
-                atts['href'] += '#%s-' % TitlesMap.get_title(self.document).replace(' ', '')
+            if node.get('internal') and TitlesCache.has_title(self.document):
+                atts['href'] += '#%s-' % TitlesCache.get_title(self.document).replace(' ', '')
             atts['href'] += node['refid']
 
         if not isinstance(node.parent, nodes.TextElement):
@@ -291,8 +339,7 @@ class HTMLConfluenceTranslator(HTMLTranslator):
         self.body.append(self.starttag(node, 'a', '', **atts))
 
         if node.get('secnumber'):
-            self.body.append(('%s' + self.secnumber_suffix) %
-                             '.'.join(map(str, node['secnumber'])))
+            self.body.append(('%s' + self.secnumber_suffix) % '.'.join(map(str, node['secnumber'])))
 
     def visit_desc(self, node):
         """ Replace <dl> """
@@ -342,6 +389,7 @@ class ImageConf(images.Image):
     """
     Image confluence directive
     """
+
     def run(self):
         # remove 'align' processing
         # remove 'target' processing
@@ -399,6 +447,81 @@ class TocTree(Directive):
         return [raw_node]
 
 
+class JiraIssuesDirective(Directive):
+    """
+    JIRA Issues Macro
+
+    https://confluence.atlassian.com/doc/jira-issues-macro-139380.html
+
+    <ac:structured-macro ac:name="jira" ac:schema-version="1" ac:macro-id="da6b6413-0b93-4052-af90-dbb252175860">
+        <ac:parameter ac:name="server">Atlassian JIRA (JAC)</ac:parameter>
+        <ac:parameter ac:name="columns">key,summary,created</ac:parameter>
+        <ac:parameter ac:name="maximumIssues">20</ac:parameter>
+        <ac:parameter ac:name="jqlQuery">project = CONF AND FixVersion=5.8 </ac:parameter>
+        <ac:parameter ac:name="serverId">146780e9-1234-312f-1243-ed0555666fa</ac:parameter>
+    </ac:structured-macro>
+    """
+    required_arguments = 1
+    has_content = False
+    final_argument_whitespace = True
+
+    option_spec = {
+        "anonymous": true_false,
+        "server_id": directives.unchanged,
+        "baseurl": directives.unchanged,
+        "columns": directives.unchanged,
+        "count": true_false,
+        "height": directives.positive_int,
+        "title": directives.unchanged,
+        "render_mode": static_dynamic,
+        "url": directives.unchanged,
+        "width": directives.unchanged,
+        "maximum_issues": directives.positive_int
+    }
+
+    def run(self):
+        result = ['<ac:structured-macro ac:name="jira" ac:schema-version="1">']
+        param_macro = '<ac:parameter ac:name="{name}">{value}</ac:parameter>'
+
+        for name, value in self.options.items():
+            # magic for underscore_formatted_text -> underscoreFormattedText
+            conf_name = ''.join(map(lambda (i, v): v if i < 1 else v.title(), enumerate(name.split('_'))))
+            result.append(param_macro.format(name=conf_name, value=value))
+
+        jql_query = self.arguments[0]
+        result.append(param_macro.format(name='jqlQuery', value=jql_query))
+
+        result.append('</ac:structured-macro>')
+        attributes = {'format': 'html'}
+
+        raw_node = nodes.raw('', '\n'.join(result), **attributes)
+        return [raw_node]
+
+
+class JiraIssueRole(roles.GenericRole):
+
+    def __call__(self, role, rawtext, text, *args, **kwargs):
+        macro = """\
+          <ac:structured-macro ac:name="jira" ac:schema-version="1">
+            <ac:parameter ac:name="key">{key}</ac:parameter>
+            <ac:parameter ac:name="showSummary">false</ac:parameter>
+          </ac:structured-macro>
+        """
+        attributes = {'format': 'html'}
+        return [nodes.raw('', macro.format(key=text), **attributes)], []
+
+
+class JiraUserRole(roles.GenericRole):
+    def __call__(self, role, rawtext, text, *args, **kwargs):
+        macro = """\
+        <ac:link>
+            <ri:user ri:username="{username}"/>
+        </ac:link>
+        """
+        attributes = {'format': 'html'}
+        return [nodes.raw('', macro.format(username=text), **attributes)], []
+
+
 def setup(app):
     """
     :type app: sphinx.application.Sphinx
@@ -407,6 +530,13 @@ def setup(app):
     app.config.html_translator_class = 'sphinx_confluence.HTMLConfluenceTranslator'
     app.config.html_add_permalinks = ''
 
+    jira_issue = JiraIssueRole('jira_issue', nodes.Inline)
+    app.add_role(jira_issue.name, jira_issue)
+
+    jira_user = JiraUserRole('jira_user', nodes.Inline)
+    app.add_role(jira_user.name, jira_user)
+
     app.add_directive('image', ImageConf)
     app.add_directive('toctree', TocTree)
+    app.add_directive('jira_issues', JiraIssuesDirective)
     app.add_builder(JSONConfluenceBuilder)
