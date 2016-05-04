@@ -1,0 +1,21 @@
+{#
+    confluence/layout.html
+    ~~~~~~~~~~~~~~~~~
+
+    Layout template for Confluence theme.
+
+#}
+
+{%- extends "basic/layout.html" %}
+
+{%- block htmltitle %}
+    <title>{{ title|striptags|e }}</title>
+{%- endblock %}
+
+{%- block header %}{% endblock %}
+{%- block relbar1 %}{% endblock %}
+{%- block content %}
+    {{ body }}
+{% endblock %}
+{%- block footer %}{% endblock %}
+{%- block relbar2 %}{% endblock %}
