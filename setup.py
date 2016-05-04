@@ -16,7 +16,7 @@ setup(
     packages=['sphinx_confluence'],
     include_package_data=True,
     license='MIT',
-    install_requires=open('requirements.txt'),
+    install_requires=open('requirements.txt').read(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
