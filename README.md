@@ -1,8 +1,6 @@
-Sphinx Confluence Plugin
-========================
+# Sphinx Confluence Plugin
 
-Sphinx extension for making the documentation compatible with the Confluence Storage Format.
-Read more: https://confluence.atlassian.com/display/DOC/Confluence+Storage+Format
+Sphinx extension for making the documentation compatible with the [Confluence Storage Format](https://confluence.atlassian.com/display/DOC/Confluence+Storage+Format).
 
 Features:
 
@@ -16,8 +14,50 @@ Features:
 - Reference for Confluence User
 - Info, Tip, Note, and Warning Macros
 
-Jira Issues
------------
+## Why?
+
+This extension is written as part of our Documentation Toolkit which we use in our job daily.
+The main idea of toolkit is to make a process of creating and updating documentation able to be automated
+
+Other parts of our toolkit is:
+
+- [py2swagger](#TBA)
+- [swagger2rst](https://github.com/Arello-Mobile/swagger2rst)
+- [sphinx-confluence](https://github.com/Arello-Mobile/sphinx-confluence)
+- [confluence-publisher](https://github.com/Arello-Mobile/confluence-publisher)
+
+# Install
+
+Install Sphinx Confluence Plugin from [PyPI](https://pypi.python.org/pypi/sphinx-confluence) with
+```
+$ pip install sphinx-confluence
+```
+
+## How use it
+
+First of all, after installation, you must enable this plugin in your [build configuration file](http://www.sphinx-doc.org/en/stable/config.html#confval-extensions)
+`conf.py` by adding `sphinx_confluence` into `extensions` list. This should looks like a:
+```
+...
+extensions = ['sphinx_confluence']
+...
+```
+
+Then you can build you documentation into `html` or `json` formats, either by using [sphinx build command](http://www.sphinx-doc.org/en/stable/tutorial.html#running-the-build)
+or if you uses `sphinx-quickstart` script by following commands:
+- `make html`
+- `make singlehtml`
+- `make json`
+
+After that, the results must be in Confluence Storage Format. You can use [confluence-publisher](https://github.com/Arello-Mobile/confluence-publisher)
+for publish them to your Confluence.
+
+
+## Additional Markup Constructs
+
+Sphinx Confluence Plugin adds few new directives to standard reST markup.
+
+### Jira Issues
 
 **Inline**
 
@@ -26,7 +66,6 @@ Lorem ipsum dolor sit amet, :jira_issue:`PROJECT-123` consectetur adipiscing eli
 ```
 
 **Table View**
-
 
 *Markup:*
 
@@ -54,49 +93,8 @@ Lorem ipsum dolor sit amet, :jira_issue:`PROJECT-123` consectetur adipiscing eli
    :width: 80%
 ```
 
-Jira Users
-----------
+### Jira Users
 
 ```rst
 Lorem ipsum dolor sit amet, :jira_user:`username` consectetur adipiscing elit
-```
-
-
-Install
--------
-```pip install sphinx-confluence```
-
-
-Setup with ``conf.py``
-----------------------
-
-Plugin includes to section extensions
-
-```python
-import sys
-sys.path.append('!!!_PATH_TO_EXTENSION_!!!')
-extensions = ['sphinx_confluence']
-```
-
-Build docs with conf.py
------------------------
-
-
-Plugin has own Builder ``json_conf`` (deprecated: use ``json`` instead)
-
-```sh
-sphinx-build -b json -d build/doctrees source build/json
-```
-
-Build docs without conf.py
---------------------------
-
-```sh
-    sphinx-build \
-        -b json \
-        -d build/doctrees \
-        -C \
-        -D master_doc=index \
-        -D extensions=sphinx_confluence,sphinx.ext.todo \
-        source build/result
 ```
