@@ -1,4 +1,7 @@
+
 # Sphinx Confluence Plugin
+
+[![Build Status](https://travis-ci.org/Arello-Mobile/sphinx-confluence.svg?branch=master)](https://travis-ci.org/Arello-Mobile/sphinx-confluence)
 
 Sphinx extension for making the documentation compatible with the [Confluence Storage Format](https://confluence.atlassian.com/display/DOC/Confluence+Storage+Format).
 
