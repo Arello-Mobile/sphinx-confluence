@@ -484,9 +484,7 @@ class JiraIssuesDirective(Directive):
         param_macro = '<ac:parameter ac:name="{name}">{value}</ac:parameter>'
 
         for name, value in self.options.items():
-            # magic for underscore_formatted_text -> underscoreFormattedText
-            conf_name = ''.join(map(lambda (i, v): v if i < 1 else v.title(), enumerate(name.split('_'))))
-            result.append(param_macro.format(name=conf_name, value=value))
+            result.append(param_macro.format(name=underscore_to_camelcase(name), value=value))
 
         jql_query = self.arguments[0]
         result.append(param_macro.format(name='jqlQuery', value=jql_query))
@@ -520,6 +518,10 @@ class JiraUserRole(roles.GenericRole):
         """
         attributes = {'format': 'html'}
         return [nodes.raw('', macro.format(username=text), **attributes)], []
+
+
+def underscore_to_camelcase(text):
+    return ''.join(word.title() if i else word for i, word in enumerate(text.split('_')))
 
 
 def get_path():
