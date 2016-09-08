@@ -56,6 +56,13 @@ Nulla nulla arcu, mattis et volutpat nec, bibendum in felis::
 Cras in imperdiet ipsum.
 
 
+Section 1.3 Title
+-----------------
+
+.. image:: image.png
+
+
+
 Chapter 2 Title
 ===============
 
