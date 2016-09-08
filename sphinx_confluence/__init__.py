@@ -137,7 +137,7 @@ class HTMLConfluenceTranslator(HTMLTranslator):
         for (name, value) in attributes.items():
             atts[name.lower()] = value
         attlist = atts.items()
-        attlist.sort()
+        attlist = sorted(attlist)
         parts = []
         src_part = '<ri:attachment ri:filename="%s" />' % filename
         for name, value in attlist:
@@ -148,7 +148,12 @@ class HTMLConfluenceTranslator(HTMLTranslator):
             if isinstance(value, list):
                 value = u' '.join(map(unicode, value))
             else:
-                value = unicode(value)
+                # First assume Python 2
+                try:
+                    value = unicode(value)
+                # Otherwise, do it the Python 3 way
+                except NameError:
+                    value = str(value)
 
             parts.append('ac:%s="%s"' % (name.lower(), self.attval(value)))
 
