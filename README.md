@@ -24,7 +24,7 @@ The main idea of toolkit is to make a process of creating and updating documenta
 
 Other parts of our toolkit is:
 
-- [py2swagger](#TBA)
+- [py2swagger](https://github.com/Arello-Mobile/py2swagger)
 - [swagger2rst](https://github.com/Arello-Mobile/swagger2rst)
 - [sphinx-confluence](https://github.com/Arello-Mobile/sphinx-confluence)
 - [confluence-publisher](https://github.com/Arello-Mobile/confluence-publisher)
