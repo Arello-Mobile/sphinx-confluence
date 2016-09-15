@@ -1,15 +1,12 @@
 import os
 from setuptools import setup
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-README = (
-    open(os.path.join(BASE_DIR, 'README.md')).read()
-)
+long_description = open('README.rst' if os.path.exists('README.rst') else 'README.md').read()
 
 setup(
     name='sphinx-confluence',
     description='Atlassian Confluence extension for sphinx',
-    long_description=README,
+    long_description=long_description,
     version='0.0.3',
     author='Arello Mobile',
     url='https://github.com/Arello-Mobile/sphinx-confluence',
