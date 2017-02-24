@@ -5,12 +5,15 @@ https://confluence.atlassian.com/display/DOC/Confluence+Storage+Format
 
 """
 
+from distutils.version import LooseVersion
 import os
 
 from docutils import nodes
 from docutils.parsers.rst import directives, Directive, roles
 from docutils.parsers.rst.directives import images
 from docutils.parsers.rst.roles import set_classes
+
+import sphinx
 from sphinx.builders.html import JSONHTMLBuilder
 from sphinx.locale import _
 from sphinx.writers.html import HTMLTranslator
@@ -51,6 +54,8 @@ class JSONConfluenceBuilder(JSONHTMLBuilder):
 
     def __init__(self, app):
         super(JSONConfluenceBuilder, self).__init__(app)
+        if LooseVersion(sphinx.__version__) >= LooseVersion("1.4"):
+            self.translator_class = HTMLConfluenceTranslator
         self.warn('json_conf builder is deprecated and will be removed in future releases')
 
 
@@ -543,7 +548,10 @@ def setup(app):
     app.config.html_theme_path = [get_path()]
     app.config.html_theme = 'confluence'
     app.config.html_scaled_image_link = False
-    app.config.html_translator_class = 'sphinx_confluence.HTMLConfluenceTranslator'
+    if LooseVersion(sphinx.__version__) >= LooseVersion("1.4"):
+        app.set_translator("html", HTMLConfluenceTranslator)
+    else:
+        app.config.html_translator_class = 'sphinx_confluence.HTMLConfluenceTranslator'
     app.config.html_add_permalinks = ''
 
     jira_issue = JiraIssueRole('jira_issue', nodes.Inline)
