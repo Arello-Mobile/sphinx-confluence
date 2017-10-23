@@ -84,6 +84,22 @@ Section 2.1 Title
 
 .. tip:: This text is rendered inside tip macro rst "tip"-directive is rendered as "tip"
 
+.. code-block:: python
+   :caption: just caption
+
+   def some_function():
+       interesting = False
+       print 'This line is highlighted.'
+       print 'This one is not...'
+       print '...but this one is.'
+
+.. code-block:: python
+
+   def some_function():
+       interesting = False
+       print 'This line is highlighted.'
+       print 'This one is not...'
+       print '...but this one is.'
 
 Section 2.1 Title
 -----------------
