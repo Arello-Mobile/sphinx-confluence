@@ -15,6 +15,7 @@ from docutils.parsers.rst.roles import set_classes
 
 import sphinx
 from sphinx.builders.html import JSONHTMLBuilder
+from sphinx.directives.code import CodeBlock
 from sphinx.locale import _
 from sphinx.writers.html import HTMLTranslator
 
@@ -269,6 +270,9 @@ class HTMLConfluenceTranslator(HTMLTranslator):
 
         if 'linenos' in node and node['linenos']:
             parts.append('<ac:parameter ac:name="linenumbers">true</ac:parameter>')
+
+        if 'caption' in node and node['caption']:
+            parts.append('<ac:parameter ac:name="title">%s</ac:parameter>' % node['caption'])
 
         parts.append('<ac:plain-text-body><![CDATA[%s]]></ac:plain-text-body>' % node.rawsource)
         parts.append('</ac:structured-macro>')
@@ -530,6 +534,19 @@ class JiraUserRole(roles.GenericRole):
         return [nodes.raw('', macro.format(username=text), **attributes)], []
 
 
+class CaptionedCodeBlock(CodeBlock):
+
+    def run(self):
+        ret = super(CaptionedCodeBlock, self).run()
+        caption = self.options.get('caption')
+        if caption and isinstance(ret[0], nodes.container):
+            container_node = ret[0]
+            if isinstance(container_node[0], nodes.caption):
+                container_node[1]['caption'] = caption
+                return [container_node[1]]
+        return ret
+
+
 def underscore_to_camelcase(text):
     return ''.join(word.title() if i else word for i, word in enumerate(text.split('_')))
 
@@ -563,4 +580,6 @@ def setup(app):
     app.add_directive('image', ImageConf)
     app.add_directive('toctree', TocTree)
     app.add_directive('jira_issues', JiraIssuesDirective)
+    app.add_directive('code-block', CaptionedCodeBlock)
+
     app.add_builder(JSONConfluenceBuilder)
