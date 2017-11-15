@@ -567,6 +567,7 @@ def setup(app):
     app.config.html_scaled_image_link = False
     if LooseVersion(sphinx.__version__) >= LooseVersion("1.4"):
         app.set_translator("html", HTMLConfluenceTranslator)
+        app.set_translator("json", HTMLConfluenceTranslator)
     else:
         app.config.html_translator_class = 'sphinx_confluence.HTMLConfluenceTranslator'
     app.config.html_add_permalinks = ''
