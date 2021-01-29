@@ -7,7 +7,7 @@ setup(
     name='sphinx-confluence',
     description='Atlassian Confluence extension for sphinx',
     long_description=long_description,
-    version='0.0.3',
+    version='0.0.4',
     author='Arello Mobile',
     url='https://github.com/Arello-Mobile/sphinx-confluence',
     packages=['sphinx_confluence'],
