@@ -14,7 +14,10 @@ from docutils.parsers.rst.directives import images
 from docutils.parsers.rst.roles import set_classes
 
 import sphinx
-from sphinx.builders.html import JSONHTMLBuilder
+try:
+    from sphinx.builders.html import JSONHTMLBuilder
+except ImportError:
+    from sphinxcontrib.serializinghtml import JSONHTMLBuilder
 from sphinx.directives.code import CodeBlock
 from sphinx.locale import _
 from sphinx.writers.html import HTMLTranslator
