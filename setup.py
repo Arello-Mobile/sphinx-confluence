@@ -6,6 +6,7 @@ long_description = open('README.rst' if os.path.exists('README.rst') else 'READM
 setup(
     name='sphinx-confluence',
     description='Atlassian Confluence extension for sphinx',
+    long_description_content_type='text/markdown',
     long_description=long_description,
     version='0.0.4',
     author='Arello Mobile',
